@@ -8,6 +8,14 @@ use std::path::Path;
 use crate::config;
 
 pub fn merge_and_filter(ics_dir: &Path, alert_minutes: Option<i64>) -> Result<Option<String>> {
+	merge_and_filter_classes(ics_dir, alert_minutes, None)
+}
+
+pub fn merge_and_filter_classes(
+	ics_dir: &Path,
+	alert_minutes: Option<i64>,
+	class_filters: Option<&[&str]>,
+) -> Result<Option<String>> {
 	if !ics_dir.exists() {
 		return Ok(None);
 	}
@@ -74,6 +82,20 @@ pub fn merge_and_filter(ics_dir: &Path, alert_minutes: Option<i64>) -> Result<Op
 					if dt.date() < today {
 						continue;
 					}
+				}
+			}
+
+			if let Some(filters) = class_filters {
+				let summary = component
+					.find_prop("SUMMARY")
+					.map(|p| p.val.as_str())
+					.unwrap_or("");
+				let summary_lower = summary.to_lowercase();
+				let matches = filters
+					.iter()
+					.any(|f| summary_lower.contains(&f.to_lowercase()));
+				if !matches {
+					continue;
 				}
 			}
 

@@ -58,6 +58,29 @@ pub static DEFAULT_CLASS_FILTERS: &[&str] = &[
 	"espalda sana",
 ];
 
+pub static CALENDAR_SLUGS: LazyLock<HashMap<&str, &[&str]>> = LazyLock::new(|| {
+	HashMap::from([
+		("yoga", ["yoga"].as_slice()),
+		("cross", ["cross-hiit", "cross-met"].as_slice()),
+		("pilates", ["pilates"].as_slice()),
+		("zumba", ["zumba"].as_slice()),
+		("bodypump", ["body pump"].as_slice()),
+		("cycling", ["cycling"].as_slice()),
+		("bodycombat", ["body combat"].as_slice()),
+		("bodybalance", ["body balance"].as_slice()),
+		("gap", ["gap"].as_slice()),
+		("stretching", ["stretching", "mio-stretch", "espalda sana"].as_slice()),
+		("running", ["skill running", "running club"].as_slice()),
+		("aquagym", ["aquagym"].as_slice()),
+		("suspension", ["suspension training"].as_slice()),
+		("fitness", ["fitness condition"].as_slice()),
+	])
+});
+
+pub fn slug_filters(slug: &str) -> Option<&'static [&'static str]> {
+	CALENDAR_SLUGS.get(slug).copied()
+}
+
 pub fn display_name(raw: &str) -> String {
 	CLASS_DISPLAY_NAMES
 		.get(raw)

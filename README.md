@@ -12,18 +12,47 @@ just dev    # auto-reload (requires cargo-watch)
 
 ## Subscribe
 
+All classes (default filter):
 ```
 http://localhost:3083/calendar.ics
 ```
+
+Per-class calendars:
+```
+http://localhost:3083/calendar/yoga.ics
+http://localhost:3083/calendar/cross.ics
+http://localhost:3083/calendar/pilates.ics
+```
+
+### Available class slugs
+
+| Slug | Classes included |
+|---|---|
+| `yoga` | Yoga |
+| `cross` | Cross-HIIT (all variants), Cross-Met |
+| `pilates` | Pilates Stretch, Pilates Strong |
+| `zumba` | Zumba |
+| `bodypump` | Body Pump |
+| `cycling` | Cycling, Cycling Virtual |
+| `bodycombat` | Body Combat |
+| `bodybalance` | Body Balance |
+| `gap` | GAP |
+| `stretching` | Stretching, Mio-Stretch, Espalda Sana |
+| `running` | Skill Running, Running Club |
+| `aquagym` | Aquagym, Aquagym 30 |
+| `suspension` | Suspension Training |
+| `fitness` | Fitness Condition |
+| `all` | Everything (no filter) |
 
 ### Alerts
 
 By default, calendar events have **no reminders** — your calendar app won't buzz you.
 
-To get reminders, add `?alert=` with the number of minutes:
+To get reminders, add `?alert=` with the number of minutes. Works on both default and per-class calendars:
 
 ```
 http://localhost:3083/calendar.ics?alert=25
+http://localhost:3083/calendar/yoga.ics?alert=15
 ```
 
 ### Class names
@@ -49,7 +78,8 @@ Full mapping in `server/src/config.rs`.
 
 | Endpoint | Method | Description |
 |---|---|---|
-| `/calendar.ics` | GET | Merged calendar (supports `?alert=N`) |
+| `/calendar.ics` | GET | Default filtered calendar (supports `?alert=N`) |
+| `/calendar/{slug}.ics` | GET | Per-class calendar (see slug table above) |
 | `/health` | GET | Server status, file counts, last fetch |
 | `/refresh` | POST | Trigger a manual data refresh |
 

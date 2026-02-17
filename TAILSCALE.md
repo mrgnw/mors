@@ -7,9 +7,8 @@ This guide explains how to expose your gym calendar via Tailscale Serve for secu
 ### 1. Start the Calendar Server
 
 ```bash
-# Starts on port 3083 by default
-cd /Users/m/dev/calendars
-uv run main.py
+cd /Users/m/dev/mors/server
+just run    # or: cargo run
 ```
 
 ### 2. Enable Tailscale Serve
@@ -17,7 +16,6 @@ uv run main.py
 In another terminal:
 
 ```bash
-# Serve port 3083 over HTTPS on your tailnet
 tailscale serve --bg http://localhost:3083
 ```
 
@@ -46,26 +44,17 @@ tailscale serve reset
 
 ### Serve on a Specific Port
 ```bash
-# If you want to use a different port locally
-PORT=3000 uv run main.py
+PORT=3000 cargo run
 
-# Then serve that port
 tailscale serve https / http://localhost:3000
 ```
-
-## Benefits
-
-- ✅ **Secure**: HTTPS with automatic certificate management
-- ✅ **Private**: Only accessible on your tailnet
-- ✅ **No Port Forwarding**: Works behind NAT/firewalls
-- ✅ **Mobile Access**: Access from phone, tablet, etc.
-- ✅ **Multiple Devices**: Subscribe on all your devices
 
 ## Endpoints
 
 Once served via Tailscale, these endpoints are available:
 
 - `https://<machine>.ts.net/calendar.ics` - Calendar feed
+- `https://<machine>.ts.net/calendar/<class>.ics` - Per-class calendar feed
 - `https://<machine>.ts.net/health` - Health check
 - `https://<machine>.ts.net/refresh` - Manual refresh (POST)
 
@@ -77,7 +66,7 @@ Instead of running manually, use a process manager to keep the server running:
 
 **Using `launchd` (macOS):**
 
-Create `~/Library/LaunchAgents/com.user.gymcalendar.plist`:
+Create `~/Library/LaunchAgents/com.user.mors.plist`:
 
 ```xml
 <?xml version="1.0" encoding="UTF-8"?>
@@ -85,31 +74,30 @@ Create `~/Library/LaunchAgents/com.user.gymcalendar.plist`:
 <plist version="1.0">
 <dict>
     <key>Label</key>
-    <string>com.user.gymcalendar</string>
+    <string>com.user.mors</string>
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/local/bin/uv</string>
+        <string>cargo</string>
         <string>run</string>
-        <string>main.py</string>
     </array>
     <key>WorkingDirectory</key>
-    <string>/Users/m/dev/calendars</string>
+    <string>/Users/m/dev/mors/server</string>
     <key>RunAtLoad</key>
     <true/>
     <key>KeepAlive</key>
     <true/>
     <key>StandardOutPath</key>
-    <string>/tmp/gymcalendar.log</string>
+    <string>/tmp/mors.log</string>
     <key>StandardErrorPath</key>
-    <string>/tmp/gymcalendar.err</string>
+    <string>/tmp/mors.err</string>
 </dict>
 </plist>
 ```
 
 Then:
 ```bash
-launchctl load ~/Library/LaunchAgents/com.user.gymcalendar.plist
-launchctl start com.user.gymcalendar
+launchctl load ~/Library/LaunchAgents/com.user.mors.plist
+launchctl start com.user.mors
 ```
 
 ### 2. Set Up Tailscale Serve to Start on Boot
@@ -119,46 +107,38 @@ Tailscale Serve configuration persists across reboots automatically.
 ### 3. Monitor Health
 
 ```bash
-# Check if server is running
 curl https://<machine>.ts.net/health
 
-# Check logs
-tail -f /tmp/gymcalendar.log
+tail -f /tmp/mors.log
 ```
 
 ## Troubleshooting
 
 ### "No calendar data available"
 
-The server needs time to fetch data on first start. Wait 10-15 seconds, then try again.
-
-Or manually trigger refresh:
+The server needs .ics files in `ics_files/`. Trigger a scrape:
 ```bash
 curl -X POST https://<machine>.ts.net/refresh
 ```
 
 ### Check Server Status
 ```bash
-# Is the local server running?
 curl http://localhost:3083/health
 
-# Is Tailscale Serve configured?
 tailscale serve status
 ```
 
 ### Reset and Restart
 ```bash
-# Stop Tailscale Serve
 tailscale serve reset
 
-# Kill server
-pkill -f main.py
+# Kill server (find the cargo/mors process)
+pkill -f mors
 
-# Restart server
-cd /Users/m/dev/calendars
-nohup uv run main.py > /tmp/gymcalendar.log 2>&1 &
+# Restart
+cd /Users/m/dev/mors/server
+nohup cargo run > /tmp/mors.log 2>&1 &
 
-# Re-enable Tailscale Serve
 tailscale serve https / http://localhost:3083
 ```
 
@@ -179,4 +159,4 @@ If you want to share with people NOT on your tailnet:
 tailscale funnel 3083
 ```
 
-⚠️ **Warning**: This makes your calendar PUBLIC on the internet. Only use if you want to share with others outside your tailnet.
+Warning: This makes your calendar PUBLIC on the internet.

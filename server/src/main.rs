@@ -18,14 +18,16 @@ async fn main() -> anyhow::Result<()> {
 	let app = Router::new()
 		.route("/", get(routes::dashboard::index))
 		.route("/calendar.ics", get(routes::calendar::get_calendar))
+		.route("/calendar/{slug}", get(routes::calendar::get_filtered_calendar))
 		.route("/health", get(routes::health::health_check))
 		.route("/refresh", axum::routing::post(routes::refresh::refresh))
 		.with_state(state);
 
 	let addr = format!("0.0.0.0:{port}");
 	tracing::info!("Listening on {addr}");
-	tracing::info!("  Calendar: http://localhost:{port}/calendar.ics");
-	tracing::info!("  Health:   http://localhost:{port}/health");
+	tracing::info!("  Calendar:  http://localhost:{port}/calendar.ics");
+	tracing::info!("  Per-class: http://localhost:{port}/calendar/yoga.ics");
+	tracing::info!("  Health:    http://localhost:{port}/health");
 
 	let listener = tokio::net::TcpListener::bind(&addr).await?;
 	axum::serve(listener, app).await?;
