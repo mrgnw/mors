@@ -7,3 +7,4 @@ ics_files/
 .DS_Store
 uv.lock
 .overmind.*
+server/target/

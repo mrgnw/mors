@@ -1,5 +1,6 @@
 from datetime import datetime, timezone
 from pathlib import Path
+from zoneinfo import ZoneInfo
 from icalendar import Calendar, Event
 
 from .config import CLASS_DISPLAY_NAMES, DEFAULT_CLASS_FILTERS, GYM_ADDRESS
@@ -33,11 +34,14 @@ def classes_to_ical(classes, output_file):
 	cal = Calendar()
 	cal.add('prodid', '-//Metropolitan Gym Classes//EN')
 	cal.add('version', '2.0')
+	cal.add('method', 'PUBLISH')
 	cal.add('calscale', 'GREGORIAN')
 	cal.add('x-wr-calname', 'Gym Classes')
 	cal.add('x-wr-timezone', 'Europe/Madrid')
 
-	now = datetime.now(timezone.utc).replace(tzinfo=None)
+	MADRID = ZoneInfo("Europe/Madrid")
+	now_utc = datetime.now(timezone.utc)
+	now = now_utc.replace(tzinfo=None)
 	event_count = 0
 	seen_ids = set()
 
@@ -60,9 +64,13 @@ def classes_to_ical(classes, output_file):
 
 			event = Event()
 			event.add('uid', f"{class_id}@metropolitan.provis.es")
-			event.add('dtstamp', now)
-			event.add('dtstart', start_dt)
-			event.add('dtend', end_dt)
+			event.add('dtstamp', now_utc)
+			event.add('dtstart', start_dt.replace(tzinfo=MADRID))
+			event.add('dtend', end_dt.replace(tzinfo=MADRID))
+			event.add('last-modified', now_utc)
+			event.add('sequence', 0)
+			event.add('class', 'PUBLIC')
+			event.add('transp', 'TRANSPARENT')
 
 			summary = display_name(cls.get("Nombre", "Class"))
 			event.add('summary', summary)

@@ -1,0 +1,28 @@
+set shell := ["bash", "-euo", "pipefail", "-c"]
+
+version := `grep '^version' Cargo.toml | head -1 | sed 's/.*"\(.*\)".*/\1/'`
+
+
+# Run with auto-reload (requires cargo-watch)
+dev:
+	cargo watch -x run
+
+# Run directly
+run:
+	cargo run
+
+# Check for errors
+check:
+	cargo check
+
+# Build (debug)
+build:
+	cargo build
+
+# Build (release)
+build-release:
+	cargo build --release
+
+# Install cargo-watch for dev mode
+setup:
+	cargo install cargo-watch

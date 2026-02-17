@@ -87,6 +87,7 @@ def merge_and_filter_ics_files(reminder_minutes=None):
 	merged_cal = Calendar()
 	merged_cal.add('prodid', '-//Gym Calendar Server//EN')
 	merged_cal.add('version', '2.0')
+	merged_cal.add('method', 'PUBLISH')
 	merged_cal.add('calscale', 'GREGORIAN')
 	merged_cal.add('x-wr-calname', 'Gym Classes')
 	merged_cal.add('x-wr-timezone', 'Europe/Madrid')
