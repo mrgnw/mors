@@ -14,7 +14,7 @@ Logs in, scrapes class schedule, writes .ics to ics_files/.
 import asyncio
 import json
 import os
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from playwright.async_api import async_playwright
 from dotenv import load_dotenv
@@ -40,8 +40,34 @@ async def fetch_gym_classes(headless=True):
 		page = await context.new_page()
 		await navigate_to_gym(page)
 
-		print("  Extracting class data...")
-		all_classes = await extract_classes_from_page(page)
+		print("  Extracting class data for multiple weeks...")
+		all_classes = []
+		today = datetime.now()
+
+		# Week 1: already on the current week from navigate_to_gym
+		print(f"  Fetching week 1 ({today.strftime('%Y-%m-%d')})...")
+		week_classes = await extract_classes_from_page(page)
+		all_classes.extend(week_classes)
+		print(f"    Found {len(week_classes)} classes")
+
+		# Week 2+
+		for week_offset in range(1, 2):
+			week_date = today + timedelta(weeks=week_offset)
+			date_str = week_date.strftime("%Y-%m-%dT00:00:00")
+			url = (
+				f"https://clubmetropolitan.provis.es/ActividadesColectivas/"
+				f"ActividadesColectivasHorarioSemanal?fecha={date_str}"
+				f"&integration=False&publico=False"
+			)
+			print(f"  Fetching week {week_offset + 1} ({week_date.strftime('%Y-%m-%d')})...")
+			await page.goto(url)
+			await page.wait_for_load_state("networkidle", timeout=30000)
+			await asyncio.sleep(2)
+
+			week_classes = await extract_classes_from_page(page)
+			all_classes.extend(week_classes)
+			print(f"    Found {len(week_classes)} classes")
+
 		print(f"  Found {len(all_classes)} total classes")
 
 		now = datetime.now(timezone.utc).replace(tzinfo=None)
