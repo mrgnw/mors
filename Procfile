@@ -1,1 +1,1 @@
-dev: uv run main.py
+server: cd server && cargo run
